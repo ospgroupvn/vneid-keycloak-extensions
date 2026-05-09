@@ -65,7 +65,7 @@ public class VneidIdentityProviderFactory extends OIDCIdentityProviderFactory {
         ProviderConfigProperty debugProp = new ProviderConfigProperty();
         debugProp.setName(VneidIdentityProvider.DEBUG_SKIP_TOKEN_CONFIG);
         debugProp.setLabel("Debug Mode");
-        debugProp.setHelpText("When enabled, skip token exchange and show debug page with curl commands. Disable in production.");
+        debugProp.setHelpText("⚠️ WARNING: Development only! Exposes authorization codes, encrypt keys, and curl commands with secrets. NEVER enable in production.");
         debugProp.setType(ProviderConfigProperty.BOOLEAN_TYPE);
         debugProp.setDefaultValue("false");
         configProperties.add(debugProp);

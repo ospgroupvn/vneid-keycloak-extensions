@@ -132,11 +132,8 @@ public class VneidIdentityProvider extends OIDCIdentityProvider {
         boolean isEncrypted = response != null && response.contains("\"data\"") && response.contains("\"key\"");
         logger.infof("VNeID: getFederatedIdentity called, response length=%d, encrypted=%b",
                 response == null ? 0 : response.length(), isEncrypted);
-        if (response != null && response.length() <= 500) {
-            logger.infof("VNeID: token response body (full)=%s", response);
-        } else if (response != null) {
-            logger.infof("VNeID: token response body (first 500 chars)=%s", response.substring(0, 500));
-        }
+        // Debug logging only - response body contains sensitive tokens
+        logger.debugf("VNeID: token response body=%s", response);
 
         String tokenJson = decryptIfNeeded(response);
         try {
@@ -149,7 +146,7 @@ public class VneidIdentityProvider extends OIDCIdentityProvider {
                     tokenResponse.getScope());
 
             if (accessToken == null || accessToken.isBlank()) {
-                logger.errorf("VNeID: token response JSON (no access_token)=%s", tokenJson);
+                logger.errorf("VNeID: token response missing access_token");
                 throw new IdentityBrokerException("VNeID token response contains no access_token");
             }
 
@@ -168,22 +165,21 @@ public class VneidIdentityProvider extends OIDCIdentityProvider {
             boolean userinfoEncrypted = userinfoRaw != null && userinfoRaw.contains("\"data\"") && userinfoRaw.contains("\"key\"");
             logger.infof("VNeID: userinfo response: HTTP=%d, encrypted=%b, length=%d",
                     userinfoStatus, userinfoEncrypted, userinfoRaw == null ? 0 : userinfoRaw.length());
-            if (userinfoRaw != null) {
-                logger.infof("VNeID: userinfo raw body=%s",
-                        userinfoRaw.length() <= 500 ? userinfoRaw : userinfoRaw.substring(0, 500) + "...");
-            }
+            // Debug logging only - userinfo contains PII
+            logger.debugf("VNeID: userinfo raw body=%s", userinfoRaw);
 
             if (userinfoStatus != 200) {
-                logger.errorf("VNeID: userinfo FAILED status=%d, body=%s", userinfoStatus, userinfoRaw);
+                logger.errorf("VNeID: userinfo FAILED status=%d", userinfoStatus);
                 throw new IdentityBrokerException("VNeID userinfo endpoint returned HTTP " + userinfoStatus);
             }
 
             String userinfoJson = decryptIfNeeded(userinfoRaw);
-            logger.infof("VNeID: userinfo after decrypt=%s", userinfoJson);
+            // Debug logging only - userinfo contains PII
+            logger.debugf("VNeID: userinfo after decrypt=%s", userinfoJson);
 
             @SuppressWarnings("unchecked")
             Map<String, Object> claims = JsonSerialization.readValue(userinfoJson, Map.class);
-            logger.infof("VNeID: userinfo claims keys=%s, full claims=%s", claims.keySet(), claims);
+            logger.infof("VNeID: userinfo claims keys=%s", claims.keySet());
 
             // Read claim names from config (with defaults)
             String userIdClaim = getConfigClaim(USER_ID_CLAIM_CONFIG, DEFAULT_USER_ID_CLAIM);
@@ -367,8 +363,10 @@ public class VneidIdentityProvider extends OIDCIdentityProvider {
             }
 
             // DEBUG MODE: show all code variants on screen for testing
+            // WARNING: Debug mode exposes sensitive data (codes, keys, secrets). NEVER enable in production.
             boolean debugSkip = "true".equalsIgnoreCase(getConfig().getConfig().get(DEBUG_SKIP_TOKEN_CONFIG));
             if (debugSkip) {
+                logger.error("VNeID: DEBUG MODE IS ENABLED - This should NEVER be used in production! Exposing sensitive authentication data.");
                 String codeToUse = (rawCode != null && !rawCode.equals(decodedCode)) ? rawCode : decodedCode;
                 String tokenUrl = getConfig().getTokenUrl();
                 String clientId = getConfig().getClientId();

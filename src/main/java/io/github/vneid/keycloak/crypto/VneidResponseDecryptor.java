@@ -16,10 +16,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Decrypts encrypted responses from VNeID token endpoint.
  *
- * Encryption scheme (per VNeID sample code):
- * - Response contains {"data": "<base64>", "key": "<base64>"}
- * - RSA/ECB/PKCS1Padding decrypts the key to get AES secret
- * - AES (ECB mode, no IV) decrypts data directly — no IV extraction
+ * <p>Encryption scheme (per VNeID sample code):</p>
+ * <ul>
+ *   <li>Response contains {"data": "&lt;base64&gt;", "key": "&lt;base64&gt;"}
+ *   <li>RSA/ECB/PKCS1Padding decrypts the key to get AES secret
+ *   <li>AES (ECB mode, no IV) decrypts data directly — no IV extraction
+ * </ul>
+ *
+ * <p><strong>Security Note on AES-ECB:</strong></p>
+ * <p>AES in ECB mode is cryptographically weaker than CBC/GCM modes because identical
+ * plaintext blocks produce identical ciphertext blocks. However, VNeID's specification
+ * mandates ECB mode, and this implementation must comply with the VNeID encryption scheme.
+ * This is a known limitation imposed by the VNeID identity provider, not a design choice.
+ * Compensating controls: ensure TLS 1.2+ for all VNeID communications and restrict
+ * network access to VNeID endpoints.</p>
+ *
+ * @see <a href="https://csrc.nist.gov/publications/detail/sp/800-38a/final">NIST SP 800-38A (ECB mode)</a>
  */
 public class VneidResponseDecryptor {
 
