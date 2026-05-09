@@ -1,0 +1,4 @@
+io/github/vneid/keycloak/identityproviders/VneidIdentityProvider$VneidEndpoint.class
+io/github/vneid/keycloak/identityproviders/VneidIdentityProvider.class
+io/github/vneid/keycloak/crypto/VneidResponseDecryptor.class
+io/github/vneid/keycloak/identityproviders/VneidIdentityProviderFactory.class
